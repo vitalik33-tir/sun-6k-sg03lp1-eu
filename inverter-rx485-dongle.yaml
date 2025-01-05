@@ -57,26 +57,27 @@ modbus_controller:
   
 
 text_sensor:
-   - platform: modbus_controller
-     modbus_controller_id: ${modbus_controller_id}
-     skip_updates: 2
-     id: ${device_type}_Running_Status
-     bitmask: 0
-     register_type: holding
-     address: 500
-     raw_encode: HEXBYTES
-     name: ${device_type}-Running Status
-     lambda: |-
-       uint16_t value = modbus_controller::word_from_hex_str(x, 0);
-       switch (value) {
-         case 0: return std::string("standby");
-         case 1: return std::string("selfcheck");
-         case 2: return std::string("normal");
-         case 3: return std::string("alarm");
-         case 4: return std::string("fault");
-         default: return std::string("----");
-       }
-       return x;
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    skip_updates: 2
+    id: ${device_type}_Running_Status
+    bitmask: 0
+    register_type: holding
+    address: 500
+    raw_encode: HEXBYTES
+    name: ${device_type}-Running Status
+    lambda: |-
+      uint16_t value = modbus_controller::word_from_hex_str(x, 0);
+      switch (value) {
+        case 0: return std::string("standby");
+        case 1: return std::string("selfcheck");
+        case 2: return std::string("normal");
+        case 3: return std::string("alarm");
+        case 4: return std::string("fault");
+        default: return std::string("----");
+      }
+      return x;
+
 binary_sensor:
   - platform: modbus_controller
     modbus_controller_id: ${modbus_controller_id}
@@ -84,8 +85,70 @@ binary_sensor:
     id: Grid_connected
     register_type: holding
     address: 194
-  
+
 sensor:
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Battery temperature"
+    id: Battery_temperature
+    register_type: holding
+    address: 182
+    unit_of_measurement: "°C"
+    value_type: S_WORD
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Battery voltage"
+    id: Battery_voltage
+    register_type: holding
+    address: 183
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Battery SOC"
+    id: Battery_SOC
+    register_type: holding
+    address: 184
+    unit_of_measurement: "%"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Battery power"
+    id: Battery_power
+    register_type: holding
+    address: 190
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+    filters:
+      - multiply: -1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Battery current"
+    id: Battery_current
+    register_type: holding
+    address: 191
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    accuracy_decimals: 2
+    value_type: S_WORD
+    filters:
+      - multiply: -0.01
+
   - platform: modbus_controller
     modbus_controller_id: ${modbus_controller_id}
     name: "Grid voltage"
@@ -98,29 +161,223 @@ sensor:
     filters:
       - multiply: 0.1
     value_type: S_WORD
-  
-  - platform: modbus_controller
-    modbus_controller_id: ${modbus_controller_id}
-    name: "Battery temperature"
-    id: Battery_temperature
-    register_type: holding
-    address: 182
-    unit_of_measurement: "°C"
-    value_type: S_WORD
-    accuracy_decimals: 1
-    filters:
-      - multiply:  0.1
 
   - platform: modbus_controller
     modbus_controller_id: ${modbus_controller_id}
-    skip_updates: 2
-    name: "Battery voltage"
-    id: Battery_voltage
+    name: "Grid frequency"
+    id: Grid_frequency
     register_type: holding
-    address: 183
+    address: 79
+    unit_of_measurement: "Hz"
+    state_class: "measurement"
+    accuracy_decimals: 2
+    value_type: S_WORD
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Grid power"
+    id: Grid_power
+    register_type: holding
+    address: 169
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+    filters:
+      - multiply: -1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Inverter power"
+    id: Inverter_power
+    register_type: holding
+    address: 175
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+    filters:
+      - multiply: -1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Inverter voltage"
+    id: Inverter_voltage
+    register_type: holding
+    address: 154
     unit_of_measurement: "V"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Inverter current"
+    id: Inverter_current
+    register_type: holding
+    address: 164
+    unit_of_measurement: "A"
     state_class: "measurement"
     accuracy_decimals: 2
     filters:
       - multiply: 0.01
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Inverter frequency"
+    id: Inverter_frequency
+    register_type: holding
+    address: 193
+    unit_of_measurement: "Hz"
+    state_class: "measurement"
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Load power"
+    id: Load_power
+    register_type: holding
+    address: 178
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+    filters:
+      - multiply: -1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "Load frequency"
+    id: Load_frequency
+    register_type: holding
+    address: 192
+    unit_of_measurement: "Hz"
+    state_class: "measurement"
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV1 power"
+    id: PV1_power
+    register_type: holding
+    address: 186
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+    filters:
+      - multiply: -1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV1 voltage"
+    id: PV1_voltage
+    register_type: holding
+    address: 109
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV1 current"
+    id: PV1_current
+    register_type: holding
+    address: 110
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV2 power"
+    id: PV2_power
+    register_type: holding
+    address: 187
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+    filters:
+      - multiply: -1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV2 voltage"
+    id: PV2_voltage
+    register_type: holding
+    address: 111
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV2 current"
+    id: PV2_current
+    register_type: holding
+    address: 112
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV3 power"
+    id: PV3_power
+    register_type: holding
+    address: 188
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    accuracy_decimals: 0
+    value_type: S_WORD
+    filters:
+      - multiply: -1
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV3 voltage"
+    id: PV3_voltage
+    register_type: holding
+    address: 113
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+    value_type: S_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: ${modbus_controller_id}
+    name: "PV3 current"
+    id: PV3_current
+    register_type: holding
+    address: 114
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
     value_type: S_WORD
